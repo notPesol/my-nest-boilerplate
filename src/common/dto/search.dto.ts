@@ -20,4 +20,9 @@ export class SearchDTO {
   @IsOptional()
   @Transform((params) => params.value === 'true')
   ignorePage: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @Transform((params) => params.value === 'true')
+  count: boolean;
 }

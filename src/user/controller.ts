@@ -1,6 +1,7 @@
 import {
   Controller,
   Get,
+  Param,
   Query,
   UsePipes,
   ValidationPipe,
@@ -11,19 +12,32 @@ import { UserDTO } from './dto/dto';
 import { UserSearchDTO } from './dto/search.dto';
 import { Roles } from 'src/common/decorator/roles';
 import { Role } from 'src/common/enum';
+import { BaseController } from 'src/common/controller/base.controller';
 
 @Controller('/user')
-export class UserController {
-  constructor(private readonly userService: UserService) {}
+export class UserController extends BaseController<UserDTO> {
+  constructor(private readonly userService: UserService) {
+    super(userService);
+  }
 
   @Roles(Role.Admin)
   @UsePipes(new ValidationPipe({ transform: true }))
   @Get()
-  findAll(@Query() searchDTO: UserSearchDTO) {
-    return this.userService.findAll(searchDTO).then((result) => {
-      const responseDTO = new ResponseDTO<UserDTO[]>();
-      responseDTO.data = result;
-      return responseDTO;
-    });
+  async findAll(@Query() searchDTO: UserSearchDTO) {
+    const result = await this.service.findAll(searchDTO);
+    const responseDTO = new ResponseDTO<UserDTO[]>();
+    responseDTO.data = result.rows;
+    responseDTO.totalItem = result.count;
+    return responseDTO;
+  }
+
+  @Roles(Role.Admin)
+  @Get('/:id')
+  async findByPk(@Param('id') id: number) {
+    const result = await this.userService.findByPk(id);
+    delete result.password;
+    const responseDTO = new ResponseDTO<UserDTO>();
+    responseDTO.data = result;
+    return responseDTO;
   }
 }

@@ -4,12 +4,18 @@ import { PostDTO } from './dto/dto';
 import { PostSearchDTO } from './dto/search.dto';
 import { Op } from 'sequelize';
 import { CreatePostDTO } from './dto/create-post.dto';
+import { BaseService } from 'src/common/service/base.service';
 
 @Injectable()
-export class PostService {
-  constructor(private readonly postRepository: PostRepository) {}
+export class PostService extends BaseService<PostDTO> {
+  constructor(private readonly postRepository: PostRepository) {
+    super(postRepository);
+  }
 
-  async findAll(searchDTO: PostSearchDTO): Promise<PostDTO[]> {
+  async findAll(searchDTO: PostSearchDTO): Promise<{
+    rows: PostDTO[];
+    count: number;
+  }> {
     const where = {};
     const options = {};
 
@@ -23,18 +29,22 @@ export class PostService {
       options['offset'] = (searchDTO.page - 1) * searchDTO.limit;
     }
 
-    const models = await this.postRepository
-      .getModel()
-      .findAll({ where, ...options });
+    if (searchDTO.count) {
+      return this.findAndCountAll({ where, ...options });
+    }
 
-    return models.map((e) => new PostDTO(e));
+    const models = await this.postRepository.findAll({ where, ...options });
+
+    const rows = models.map((e) => new PostDTO(e));
+
+    return { count: 0, rows };
   }
 
-  async create(dto: CreatePostDTO, req: any) {
-    const model = await this.postRepository
-      .getModel()
-      .create({ ...dto, userId: req?.user?.id });
-
+  async createNew(dto: CreatePostDTO, req: any) {
+    const model = await this.postRepository.create({
+      ...dto,
+      userId: req?.user?.id,
+    });
     return new PostDTO(model);
   }
 }

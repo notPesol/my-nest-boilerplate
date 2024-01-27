@@ -41,7 +41,7 @@ export abstract class BaseRepoSitory implements OnApplicationBootstrap {
   }
 
   async create(data: any, options?: CreateOptions<any>): Promise<Model> {
-    return this.model.create(data, options);
+    return this.model.create(data, { ...options, returning: true });
   }
 
   async update(id: number, data: any): Promise<Model | null> {
