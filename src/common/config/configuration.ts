@@ -10,4 +10,9 @@ export default () => ({
   jwt: {
     secret: process.env.JWT_SECRET || 'must_secret_ok!',
   },
+  nats: {
+    server: process.env.NATS_SERVERS,
+    user: process.env.NATS_USERNAME,
+    pass: process.env.NATS_PASSWORD,
+  },
 });

@@ -12,6 +12,8 @@ import { AuthModule } from './auth/module';
 import { HttpExceptionFilter } from './common/exception-filter/http-exception.filter';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
+import { NatsModule } from './common/nats/module';
+import { TmpNatsModule } from './tmp-nats/module';
 
 @Module({
   imports: [
@@ -19,12 +21,14 @@ import { APP_FILTER, APP_GUARD } from '@nestjs/core';
       isGlobal: true,
       load: [configuration],
     }),
+    NatsModule,
     SequelizeModule,
     UserModule,
     RoleModule,
     PostModule,
     UserAssociationModule,
     AuthModule,
+    TmpNatsModule,
   ],
   controllers: [],
   providers: [
