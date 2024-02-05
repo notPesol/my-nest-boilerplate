@@ -4,6 +4,7 @@ import { RoleDTO } from './dto/dto';
 import { RoleSearchDTO } from './dto/search.dto';
 import { Op } from 'sequelize';
 import { BaseService } from 'src/common/service/base.service';
+import { ResponseDTO } from 'src/common/dto/response.dto';
 
 @Injectable()
 export class RoleService extends BaseService<RoleDTO> {
@@ -11,9 +12,7 @@ export class RoleService extends BaseService<RoleDTO> {
     super(roleRepository);
   }
 
-  async findAll(
-    searchDTO: RoleSearchDTO,
-  ): Promise<{ rows: RoleDTO[]; count: number }> {
+  async findAll(searchDTO: RoleSearchDTO): Promise<ResponseDTO<RoleDTO[]>> {
     const where = {};
     const options = {};
 
@@ -27,14 +26,22 @@ export class RoleService extends BaseService<RoleDTO> {
       options['offset'] = (searchDTO.page - 1) * searchDTO.limit;
     }
 
+    const responseDTO = new ResponseDTO<RoleDTO[]>();
+
+    const findOptions = {
+      where,
+      ...options,
+    };
+
     if (searchDTO.count) {
-      return this.findAndCountAll({ where, ...options });
+      const { rows, count } = await this.findAndCountAll(findOptions);
+      responseDTO.data = rows;
+      responseDTO.totalItem = count;
+    } else {
+      const rows = await this.getAll(findOptions);
+      responseDTO.data = rows;
     }
 
-    const models = await this.roleRepository.findAll({ where, ...options });
-
-    const rows = models.map((e) => new RoleDTO(e));
-
-    return { count: 0, rows };
+    return responseDTO;
   }
 }

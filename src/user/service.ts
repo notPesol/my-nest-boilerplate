@@ -4,6 +4,7 @@ import { UserDTO } from './dto/dto';
 import { UserSearchDTO } from './dto/search.dto';
 import { Op } from 'sequelize';
 import { BaseService } from 'src/common/service/base.service';
+import { ResponseDTO } from 'src/common/dto/response.dto';
 
 @Injectable()
 export class UserService extends BaseService<UserDTO> {
@@ -11,9 +12,7 @@ export class UserService extends BaseService<UserDTO> {
     super(userRepository);
   }
 
-  async findAll(
-    searchDTO: UserSearchDTO,
-  ): Promise<{ rows: UserDTO[]; count: number }> {
+  async findAll(searchDTO: UserSearchDTO): Promise<ResponseDTO<UserDTO[]>> {
     const where = {};
     const options = {};
 
@@ -28,18 +27,23 @@ export class UserService extends BaseService<UserDTO> {
       options['offset'] = (searchDTO.page - 1) * searchDTO.limit;
     }
 
-    if (searchDTO.count) {
-      return this.findAndCountAll({ where, ...options });
-    }
+    const responseDTO = new ResponseDTO<UserDTO[]>();
 
-    const models = await this.userRepository.findAll({
+    const findOptions = {
       where,
       attributes: { exclude: ['password'] },
       ...options,
-    });
+    };
 
-    const rows = models.map((e) => new UserDTO(e));
+    if (searchDTO.count) {
+      const { rows, count } = await this.findAndCountAll(findOptions);
+      responseDTO.data = rows;
+      responseDTO.totalItem = count;
+    } else {
+      const rows = await this.getAll(findOptions);
+      responseDTO.data = rows;
+    }
 
-    return { count: 0, rows };
+    return responseDTO;
   }
 }
