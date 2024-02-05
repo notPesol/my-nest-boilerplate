@@ -1,6 +1,7 @@
 import { FindOptions, Model, NonNullFindOptions } from 'sequelize';
 import { BaseRepoSitory } from '../repository/base.repositoty';
 import { SearchDTO } from '../dto/search.dto';
+import { ResponseDTO } from '../dto/response.dto';
 
 export class BaseService<T> {
   protected readonly repository: BaseRepoSitory;
@@ -26,7 +27,7 @@ export class BaseService<T> {
     return this.toJson(model);
   }
 
-  async findAll(searchDTO: SearchDTO): Promise<{ rows: T[]; count: number }> {
+  async findAll(searchDTO: SearchDTO): Promise<ResponseDTO<T[]>> {
     const options = {};
 
     if (!searchDTO.ignorePage) {
@@ -34,14 +35,23 @@ export class BaseService<T> {
       options['limit'] = searchDTO.limit;
     }
 
+    const responseDTO = new ResponseDTO<T[]>();
+
     if (searchDTO.count) {
-      return this.findAndCountAll(options);
+      const { rows, count } = await this.findAndCountAll(options);
+      responseDTO.totalItem = count;
+      responseDTO.data = rows.map((model) => this.toJson(model));
+    } else {
+      const rows = await this.getAll(options);
+      responseDTO.data = rows;
     }
 
-    const models = await this.repository.findAll(options);
-    const rows = models.map((model) => this.toJson(model));
+    return responseDTO;
+  }
 
-    return { count: 0, rows };
+  async getAll(options?: FindOptions): Promise<T[]> {
+    const rows = await this.repository.findAll(options);
+    return rows.map((model) => this.toJson(model));
   }
 
   async findAndCountAll(

@@ -25,10 +25,7 @@ export class UserController extends BaseController<UserDTO> {
   @Get()
   async findAll(@Query() searchDTO: UserSearchDTO) {
     const result = await this.service.findAll(searchDTO);
-    const responseDTO = new ResponseDTO<UserDTO[]>();
-    responseDTO.data = result.rows;
-    responseDTO.totalItem = result.count;
-    return responseDTO;
+    return result;
   }
 
   @Roles(Role.Admin)

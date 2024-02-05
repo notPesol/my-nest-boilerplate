@@ -32,10 +32,7 @@ export class BaseController<T> {
   @Get()
   async findAll(@Query() searchDTO: SearchDTO): Promise<ResponseDTO<T[]>> {
     const result = await this.service.findAll(searchDTO);
-    const responseDTO = new ResponseDTO<T[]>();
-    responseDTO.data = result.rows;
-    responseDTO.totalItem = result.count;
-    return responseDTO;
+    return result;
   }
 
   @UsePipes(new ValidationPipe({ transform: true }))
