@@ -9,12 +9,12 @@ export class SearchDTO {
   @IsNumber()
   @IsOptional()
   @Transform((params) => parseInt(params.value))
-  page: number;
+  page: number = 1;
 
   @IsNumber()
   @IsOptional()
   @Transform((params) => parseInt(params.value))
-  limit: number;
+  limit: number = 10;
 
   @IsBoolean()
   @IsOptional()
