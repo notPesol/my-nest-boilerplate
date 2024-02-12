@@ -67,8 +67,8 @@ export class BaseService<T> {
   }
 
   async update(id: number, data: any): Promise<T> {
-    await this.repository.update(data, { where: { id } });
-    return await this.findByPk(id);
+    const model = await this.repository.update(id, data);
+    return this.toJson(model);
   }
 
   async delete(id: number): Promise<boolean> {
